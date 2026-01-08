@@ -1,0 +1,70 @@
+{
+  "room_dims_xyz": [
+    60,
+    60,
+    3
+  ],
+  "mic_xyz_list": [
+    [
+      30,
+      30,
+      1.5
+    ],
+    [
+      40,
+      30,
+      1.5
+    ],
+    [
+      20,
+      30,
+      1.5
+    ],
+    [
+      30,
+      40,
+      1.5
+    ],
+    [
+      30,
+      20,
+      1.5
+    ]
+  ],
+  "src_xyz_list": [
+    [
+      10,
+      10,
+      1.5
+    ],
+    [
+      20,
+      10,
+      1.5
+    ],
+    [
+      30,
+      10,
+      1.5
+    ],
+    [
+      10,
+      20,
+      1.5
+    ],
+    [
+      20,
+      20,
+      1.5
+    ]
+  ],
+  "mic_wavs": [
+    "sim_dataset/mixes/mix_fixed_mic0.wav",
+    "sim_dataset/mixes/mix_fixed_mic1.wav",
+    "sim_dataset/mixes/mix_fixed_mic2.wav",
+    "sim_dataset/mixes/mix_fixed_mic3.wav",
+    "sim_dataset/mixes/mix_fixed_mic4.wav"
+  ],
+  "mix_wav": "sim_dataset/mixes/mix_fixed.wav",
+  "spacing_m": 10
+}
