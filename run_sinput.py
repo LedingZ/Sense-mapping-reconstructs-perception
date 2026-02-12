@@ -3,7 +3,6 @@
 """
 soundset/run_sim.py  （分发阶段：sinput -> speakers/* -> status/ready.txt）
 
-需求实现（按你最后确认的版本）：
 1) 脚本放在：sound_proj/soundset/run_sim.py
 2) 使用已有虚拟环境 sound_proj/venv（运行时自行激活）
 3) 扫描 sound_proj/sinput 下所有音频文件（仅 .mp3 / .wav）
@@ -49,7 +48,6 @@ class Config:
     flatness_hi: float = 0.8
 
 
-# ✅ 只支持你要求的两种“常见音乐格式”
 AUDIO_EXTS = {".wav", ".mp3"}
 
 
@@ -222,14 +220,14 @@ def list_audio_files(dir_path: Path) -> List[Path]:
 def main() -> None:
     cfg = Config()
 
-    # ✅ 脚本在 soundset/ 内，但项目根目录是上一层 sound_proj/
+    # 脚本在 soundset/ 内，但项目根目录是上一层 sound_proj/
     PROJECT_ROOT = Path(__file__).resolve().parents[1]  # sound_proj/
 
     SINPUT = PROJECT_ROOT / "sinput"
     SPEAKERS = PROJECT_ROOT / "speakers"
     STATUS = PROJECT_ROOT / "status"
 
-    READY_FILE = STATUS / "ready.txt"  # ✅ 你要求必须带 .txt
+    READY_FILE = STATUS / "ready.txt"  
 
     if not SINPUT.exists():
         raise FileNotFoundError(f"Missing sinput dir: {SINPUT}")
