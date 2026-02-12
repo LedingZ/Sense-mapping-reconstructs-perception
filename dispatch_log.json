@@ -1,0 +1,51 @@
+{
+  "processed_count": 4,
+  "ok_count": 4,
+  "error_count": 0,
+  "rows": [
+    {
+      "file": "city trafic2 copy.wav",
+      "moved_to": "speakers/x-1_y-2/city trafic2 copy.wav",
+      "mapped_x": -1,
+      "mapped_y": -2,
+      "centroid": 1111.4297473125525,
+      "onset": 0.989833414554596,
+      "flatness": 0.0005506417364813387,
+      "harm_ratio": 0.7774687353355227,
+      "clarity": 0.8553546779680897
+    },
+    {
+      "file": "walk after water copy.wav",
+      "moved_to": "speakers/x+2_y-1/walk after water copy.wav",
+      "mapped_x": 2,
+      "mapped_y": -1,
+      "centroid": 4459.153793265872,
+      "onset": 1.5547282695770264,
+      "flatness": 0.006434430368244648,
+      "harm_ratio": 0.059831462309859286,
+      "clarity": 0.3888904505014085
+    },
+    {
+      "file": "door copy.wav",
+      "moved_to": "speakers/x+0_y-2/door copy.wav",
+      "mapped_x": 0,
+      "mapped_y": -2,
+      "centroid": 3097.633584209634,
+      "onset": 1.0776091814041138,
+      "flatness": 0.0009940399322658777,
+      "harm_ratio": 0.7496458957102825,
+      "clarity": 0.8372698322116836
+    },
+    {
+      "file": "type copy.wav",
+      "moved_to": "speakers/x+2_y-1/type copy.wav",
+      "mapped_x": 2,
+      "mapped_y": -1,
+      "centroid": 5212.507287909661,
+      "onset": 1.2617958784103394,
+      "flatness": 0.010348533280193806,
+      "harm_ratio": 0.18665259148433774,
+      "clarity": 0.4713241844648195
+    }
+  ]
+}
