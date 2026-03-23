@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sound_proj 控制台</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0c0c0c;
+      color: #f2f2f2;
+    }
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 34px;
+    }
+    .sub {
+      color: #9a9a9a;
+      margin-bottom: 22px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: #171717;
+      border: 1px solid #2b2b2b;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+    }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #7f7f7f;
+      margin-bottom: 8px;
+    }
+    .big {
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .small {
+      color: #aaaaaa;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      border: 1px solid #3c3c3c;
+      background: #262626;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #303030;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .config-row {
+      margin-bottom: 16px;
+    }
+    .config-row .small {
+      margin-bottom: 6px;
+    }
+
+    pre {
+      background: #101010;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      padding: 12px;
+      color: #cfcfcf;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 14px;
+    }
+    th { color: #8f8f8f; font-weight: 600; }
+
+    @media (max-width: 900px) {
+      .span-4, .span-6, .span-8, .span-12 {
+        grid-column: span 12;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>sound_proj 控制台</h1>
+    <div class="sub">监控 sinput / speakers / output / final，并从网页触发分析、模拟、归档。</div>
+
+    <div class="grid">
+      <div class="card span-4">
+        <div class="label">sinput</div>
+        <div class="big" id="sinputCount">-</div>
+        <div class="small">最新文件：<span id="sinputLatest">-</span></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="label">output</div>
+        <div class="big" id="outputCount">-</div>
+        <div class="small">最新文件：<span id="outputLatest">-</span></div>
+      </div>
+
+      <div class="card span-4">
+        <div class="label">final</div>
+        <div class="big" id="finalCount">-</div>
+        <div class="small">最新文件：<span id="finalLatest">-</span></div>
+      </div>
+
+      <div class="card span-6">
+        <div class="label">web config / soundset 参数</div>
+
+        <div class="config-row">
+          <div class="small">threshold: <span id="thresholdVal">0.5</span></div>
+          <input type="range" id="threshold" min="0" max="1" step="0.01" value="0.5">
+        </div>
+
+        <div class="config-row">
+          <div class="small">density: <span id="densityVal">0.5</span></div>
+          <input type="range" id="density" min="0" max="1" step="0.01" value="0.5">
+        </div>
+
+        <div class="config-row">
+          <div class="small">spread: <span id="spreadVal">0.5</span></div>
+          <input type="range" id="spread" min="0" max="1" step="0.01" value="0.5">
+        </div>
+
+        <div class="btns">
+          <button onclick="saveConfig()">保存参数</button>
+          <button onclick="runAnalysis()">Run Analysis</button>
+          <button onclick="runSim()">Run Simulation</button>
+          <button onclick="runStereo()">Run Stereo</button>
+          <button onclick="archiveSpeakers()">Archive Speakers</button>
+          <button onclick="clearStatus()">Clear Status</button>
+          <button onclick="loadStatus()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="label">status 文件</div>
+        <div id="statusFiles" class="small">-</div>
+      </div>
+
+      <div class="card span-8">
+        <div class="label">speakers 概览</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Folder</th>
+              <th>Count</th>
+              <th>Latest</th>
+            </tr>
+          </thead>
+          <tbody id="speakersTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card span-4">
+        <div class="label">process</div>
+        <div class="big" id="processRounds">-</div>
+        <div class="small">历史轮数</div>
+      </div>
+
+      <div class="card span-12">
+        <div class="label">log</div>
+        <pre id="logBox">ready.</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5050/api";
+
+    const threshold = document.getElementById("threshold");
+    const density = document.getElementById("density");
+    const spread = document.getElementById("spread");
+
+    const thresholdVal = document.getElementById("thresholdVal");
+    const densityVal = document.getElementById("densityVal");
+    const spreadVal = document.getElementById("spreadVal");
+
+    function log(msg) {
+      const box = document.getElementById("logBox");
+      const time = new Date().toLocaleTimeString();
+      box.textContent = `[${time}] ${msg}\n\n` + box.textContent;
+    }
+
+    async function jsonFetch(url, options = {}) {
+      const res = await fetch(url, options);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || data.stderr || "request failed");
+      }
+      return data;
+    }
+
+    async function loadStatus() {
+      try {
+        const data = await jsonFetch(`${API}/status`);
+
+        document.getElementById("sinputCount").textContent = data.sinput_count;
+        document.getElementById("sinputLatest").textContent = data.sinput_latest || "-";
+
+        document.getElementById("outputCount").textContent = data.output_count;
+        document.getElementById("outputLatest").textContent = data.output_latest || "-";
+
+        document.getElementById("finalCount").textContent = data.final_count;
+        document.getElementById("finalLatest").textContent = data.final_latest || "-";
+
+        document.getElementById("processRounds").textContent = data.process_rounds;
+
+        const cfg = data.config || {};
+        threshold.value = cfg.threshold ?? 0.5;
+        density.value = cfg.density ?? 0.5;
+        spread.value = cfg.spread ?? 0.5;
+
+        thresholdVal.textContent = threshold.value;
+        densityVal.textContent = density.value;
+        spreadVal.textContent = spread.value;
+
+        const statusBox = document.getElementById("statusFiles");
+        if (!data.status_files.length) {
+          statusBox.innerHTML = "<div>暂无状态文件</div>";
+        } else {
+          statusBox.innerHTML = data.status_files.map(
+            s => `<div style="margin-bottom:10px;"><strong>${s.name}</strong><br>${(s.content || "").replace(/</g, "&lt;")}</div>`
+          ).join("");
+        }
+
+        const tbody = document.getElementById("speakersTable");
+        tbody.innerHTML = "";
+        (data.speakers || []).forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.name}</td>
+            <td>${row.count}</td>
+            <td>${row.latest || "-"}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        log("loadStatus error: " + err.message);
+      }
+    }
+
+    async function saveConfig() {
+      try {
+        const payload = {
+          threshold: parseFloat(threshold.value),
+          density: parseFloat(density.value),
+          spread: parseFloat(spread.value)
+        };
+
+        await jsonFetch(`${API}/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        thresholdVal.textContent = threshold.value;
+        densityVal.textContent = density.value;
+        spreadVal.textContent = spread.value;
+
+        log("config saved");
+        loadStatus();
+      } catch (err) {
+        log("saveConfig error: " + err.message);
+      }
+    }
+
+    async function runAnalysis() {
+      try {
+        const data = await jsonFetch(`${API}/run-analysis`, { method: "POST" });
+        log("run_sinput.py finished\n" + (data.stdout || "") + "\n" + (data.stderr || ""));
+        loadStatus();
+      } catch (err) {
+        log("runAnalysis error: " + err.message);
+      }
+    }
+
+    async function runSim() {
+      try {
+        const data = await jsonFetch(`${API}/run-sim`, { method: "POST" });
+        log("run_sim.py finished\n" + (data.stdout || "") + "\n" + (data.stderr || ""));
+        loadStatus();
+      } catch (err) {
+        log("runSim error: " + err.message);
+      }
+    }
+
+    async function runStereo() {
+      try {
+        const data = await jsonFetch(`${API}/run-stereo`, { method: "POST" });
+        log("run_sim stereo.py finished\n" + (data.stdout || "") + "\n" + (data.stderr || ""));
+        loadStatus();
+      } catch (err) {
+        log("runStereo error: " + err.message);
+      }
+    }
+
+    async function archiveSpeakers() {
+      try {
+        const data = await jsonFetch(`${API}/archive-speakers`, { method: "POST" });
+        log(`archive done. moved=${data.moved}, round=${data.round}`);
+        loadStatus();
+      } catch (err) {
+        log("archiveSpeakers error: " + err.message);
+      }
+    }
+
+    async function clearStatus() {
+      try {
+        await jsonFetch(`${API}/clear-status`, { method: "POST" });
+        log("status cleared");
+        loadStatus();
+      } catch (err) {
+        log("clearStatus error: " + err.message);
+      }
+    }
+
+    threshold.addEventListener("input", () => thresholdVal.textContent = threshold.value);
+    density.addEventListener("input", () => densityVal.textContent = density.value);
+    spread.addEventListener("input", () => spreadVal.textContent = spread.value);
+
+    loadStatus();
+    setInterval(loadStatus, 4000);
+  </script>
+</body>
+</html>
