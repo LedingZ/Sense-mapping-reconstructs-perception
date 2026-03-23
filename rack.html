@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perception Rack Demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0a0a0a;
+      color: white;
+    }
+    .page {
+      min-height: 100%;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.05), transparent 35%),
+        #0a0a0a;
+    }
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 18px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+    }
+    .title-small {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      color: #8a8a8a;
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      font-weight: 700;
+    }
+    .desc {
+      margin-top: 10px;
+      color: #a8a8a8;
+      font-size: 14px;
+      max-width: 760px;
+      line-height: 1.6;
+    }
+    .tips {
+      border: 1px solid #2b2b2b;
+      background: rgba(20,20,20,0.95);
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: #d0d0d0;
+      font-size: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      min-width: 280px;
+    }
+    .tips .sub {
+      margin-top: 6px;
+      color: #8f8f8f;
+      font-size: 13px;
+    }
+    .board {
+      position: relative;
+      width: min(1400px, calc(100vw - 48px));
+      height: 820px;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 28px;
+      border: 1px solid #2a2a2a;
+      background:
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px),
+        #121212;
+      background-size: 44px 44px, 44px 44px, auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    svg.cables {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .module {
+      position: absolute;
+      border-radius: 22px;
+      border: 1px solid #d0d0d0;
+      background: #f7f7f7;
+      color: #111;
+      box-shadow: 0 14px 24px rgba(0,0,0,0.25);
+      overflow: hidden;
+      user-select: none;
+    }
+    .module-header {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #efefef;
+      border-bottom: 1px solid #d4d4d4;
+      cursor: grab;
+    }
+    .module-header:active {
+      cursor: grabbing;
+    }
+    .module-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: #777;
+    }
+    .module-title {
+      margin-top: 3px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #222;
+    }
+    .fake-screen {
+      width: 42px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid #cfcfcf;
+      background: white;
+    }
+    .module-body {
+      position: relative;
+      width: 100%;
+      height: calc(100% - 58px);
+      padding: 16px;
+    }
+    .port-wrap {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #777;
+      white-space: nowrap;
+    }
+    .port-wrap.input {
+      left: 8px;
+    }
+    .port-wrap.output {
+      right: 8px;
+      flex-direction: row-reverse;
+    }
+    .port {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid #222;
+      background: #fbfbfb;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      cursor: crosshair;
+      flex: 0 0 auto;
+    }
+    .port:hover {
+      transform: scale(1.08);
+    }
+    .knob-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px 12px;
+    }
+    .knob-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .knob {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid #999;
+      background: #ddd;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);
+    }
+    .knob-line {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4px;
+      height: 18px;
+      background: #222;
+      border-radius: 99px;
+      transform-origin: 50% 82%;
+    }
+    .knob-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #666;
+      text-transform: uppercase;
+    }
+    .seq-title {
+      margin-bottom: 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #666;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .step {
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid #d0d0d0;
+      background: #ececec;
+    }
+    .step.on {
+      border-color: #ec4899;
+      background: rgba(236,72,153,0.72);
+    }
+    .footer-note {
+      max-width: 1400px;
+      margin: 14px auto 0 auto;
+      color: #8a8a8a;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <div class="title-small">Web Modular Interface Demo</div>
+        <h1>Perception Rack</h1>
+        <div class="desc">
+          这是一个网页版模块化界面原型。拖动模块标题可以移动模块；从右侧输出口按下拖动，到左侧输入口松开可以连接线。
+        </div>
+      </div>
+      <div class="tips">
+        <div>操作说明</div>
+        <div class="sub">拖标题移动模块 · 从右侧圆孔拉线 · 松到左侧圆孔完成连接</div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <svg class="cables" id="cableLayer"></svg>
+    </div>
+
+    <div class="footer-note">
+      你后面还可以继续加：旋钮调参、删除连线、真实声音输出、step sequencer 动画、波形显示。
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const cableLayer = document.getElementById("cableLayer");
+
+    const modules = [
+      {
+        id: "osc1",
+        title: "Sound Source",
+        x: 120,
+        y: 110,
+        w: 180,
+        h: 220,
+        params: [
+          { label: "Freq", value: 62 },
+          { label: "Shape", value: 34 },
+          { label: "Gain", value: 71 }
+        ],
+        inputs: [],
+        outputs: [{ id: "out", label: "OUT", y: 90 }]
+      },
+      {
+        id: "filter1",
+        title: "Memory Filter",
+        x: 390,
+        y: 150,
+        w: 180,
+        h: 240,
+        params: [
+          { label: "Cutoff", value: 48 },
+          { label: "Res", value: 66 },
+          { label: "Color", value: 29 }
+        ],
+        inputs: [{ id: "in", label: "IN", y: 92 }],
+        outputs: [{ id: "out", label: "OUT", y: 128 }]
+      },
+      {
+        id: "seq1",
+        title: "Pulse Grid",
+        x: 110,
+        y: 390,
+        w: 250,
+        h: 180,
+        steps: [1, 0, 1, 1, 0, 0, 1, 0],
+        inputs: [],
+        outputs: [{ id: "cv", label: "CV", y: 115 }]
+      },
+      {
+        id: "space1",
+        title: "Space Output",
+        x: 650,
+        y: 210,
+        w: 190,
+        h: 220,
+        params: [
+          { label: "Depth", value: 56 },
+          { label: "Spread", value: 74 }
+        ],
+        inputs: [
+          { id: "audio", label: "AUDIO", y: 80 },
+          { id: "mod", label: "MOD", y: 130 }
+        ],
+        outputs: []
+      }
+    ];
+
+    const cables = [
+      {
+        id: "c1",
+        from: { moduleId: "osc1", portId: "out" },
+        to: { moduleId: "filter1", portId: "in" },
+        color: "#ec4899"
+      },
+      {
+        id: "c2",
+        from: { moduleId: "filter1", portId: "out" },
+        to: { moduleId: "space1", portId: "audio" },
+        color: "#ef4444"
+      },
+      {
+        id: "c3",
+        from: { moduleId: "seq1", portId: "cv" },
+        to: { moduleId: "space1", portId: "mod" },
+        color: "#22c55e"
+      }
+    ];
+
+    let dragging = null;
+    let pendingCable = null;
+
+    function moduleById(id) {
+      return modules.find(m => m.id === id);
+    }
+
+    function getPortPosition(moduleId, portId, kind) {
+      const mod = moduleById(moduleId);
+      if (!mod) return { x: 0, y: 0 };
+      const ports = kind === "from" ? mod.outputs : mod.inputs;
+      const port = ports.find(p => p.id === portId);
+      if (!port) return { x: mod.x, y: mod.y };
+      return {
+        x: kind === "from" ? mod.x + mod.w - 10 : mod.x + 10,
+        y: mod.y + 58 + port.y + 8
+      };
+    }
+
+    function cablePath(x1, y1, x2, y2) {
+      const dx = Math.max(80, Math.abs(x2 - x1) * 0.45);
+      return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+    }
+
+    function render() {
+      board.querySelectorAll(".module").forEach(el => el.remove());
+
+      modules.forEach(mod => {
+        const modEl = document.createElement("div");
+        modEl.className = "module";
+        modEl.style.left = mod.x + "px";
+        modEl.style.top = mod.y + "px";
+        modEl.style.width = mod.w + "px";
+        modEl.style.height = mod.h + "px";
+
+        const header = document.createElement("div");
+        header.className = "module-header";
+        header.innerHTML = `
+          <div>
+            <div class="module-tag">Module</div>
+            <div class="module-title">${mod.title}</div>
+          </div>
+          <div class="fake-screen"></div>
+        `;
+
+        header.addEventListener("mousedown", (e) => {
+          dragging = {
+            moduleId: mod.id,
+            offsetX: e.clientX - mod.x,
+            offsetY: e.clientY - mod.y
+          };
+        });
+
+        const body = document.createElement("div");
+        body.className = "module-body";
+
+        if (mod.inputs) {
+          mod.inputs.forEach(port => {
+            const wrap = document.createElement("div");
+            wrap.className = "port-wrap input";
+            wrap.style.top = port.y + "px";
+
+            const hole = document.createElement("div");
+            hole.className = "port";
+            hole.addEventListener("mouseup", () => {
+              if (pendingCable) {
+                cables.push({
+                  id: "c" + (cables.length + 1),
+                  from: {
+                    moduleId: pendingCable.moduleId,
+                    portId: pendingCable.portId
+                  },
+                  to: {
+                    moduleId: mod.id,
+                    portId: port.id
+                  },
+                  color: ["#ec4899", "#22c55e", "#f97316", "#60a5fa"][cables.length % 4]
+                });
+                pendingCable = null;
+                renderCables();
+              }
+            });
+
+            const label = document.createElement("div");
+            label.textContent = port.label;
+
+            wrap.appendChild(hole);
+            wrap.appendChild(label);
+            body.appendChild(wrap);
+          });
+        }
+
+        if (mod.outputs) {
+          mod.outputs.forEach(port => {
+            const wrap = document.createElement("div");
+            wrap.className = "port-wrap output";
+            wrap.style.top = port.y + "px";
+
+            const hole = document.createElement("div");
+            hole.className = "port";
+            hole.addEventListener("mousedown", (e) => {
+              e.stopPropagation();
+              const start = getPortPosition(mod.id, port.id, "from");
+              pendingCable = {
+                moduleId: mod.id,
+                portId: port.id,
+                mouseX: start.x,
+                mouseY: start.y
+              };
+            });
+
+            const label = document.createElement("div");
+            label.textContent = port.label;
+
+            wrap.appendChild(hole);
+            wrap.appendChild(label);
+            body.appendChild(wrap);
+          });
+        }
+
+        if (mod.params && mod.params.length) {
+          const grid = document.createElement("div");
+          grid.className = "knob-grid";
+
+          mod.params.forEach(param => {
+            const item = document.createElement("div");
+            item.className = "knob-item";
+
+            const knob = document.createElement("div");
+            knob.className = "knob";
+
+            const line = document.createElement("div");
+            line.className = "knob-line";
+            const angle = -135 + (param.value / 100) * 270;
+            line.style.transform = `translate(-50%, -86%) rotate(${angle}deg)`;
+
+            const label = document.createElement("div");
+            label.className = "knob-label";
+            label.textContent = param.label;
+
+            knob.appendChild(line);
+            item.appendChild(knob);
+            item.appendChild(label);
+            grid.appendChild(item);
+          });
+
+          body.appendChild(grid);
+        }
+
+        if (mod.steps) {
+          const title = document.createElement("div");
+          title.className = "seq-title";
+          title.textContent = "Sequencer";
+
+          const steps = document.createElement("div");
+          steps.className = "steps";
+
+          mod.steps.forEach(v => {
+            const step = document.createElement("div");
+            step.className = "step" + (v ? " on" : "");
+            steps.appendChild(step);
+          });
+
+          body.appendChild(title);
+          body.appendChild(steps);
+        }
+
+        modEl.appendChild(header);
+        modEl.appendChild(body);
+        board.appendChild(modEl);
+      });
+
+      renderCables();
+    }
+
+    function renderCables() {
+      cableLayer.innerHTML = "";
+
+      cables.forEach(cable => {
+        const from = getPortPosition(cable.from.moduleId, cable.from.portId, "from");
+        const to = getPortPosition(cable.to.moduleId, cable.to.portId, "to");
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", cablePath(from.x, from.y, to.x, to.y));
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", cable.color || "#ec4899");
+        path.setAttribute("stroke-width", "3");
+        path.setAttribute("stroke-linecap", "round");
+
+        cableLayer.appendChild(path);
+      });
+
+      if (pendingCable) {
+        const from = getPortPosition(pendingCable.moduleId, pendingCable.portId, "from");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", cablePath(from.x, from.y, pendingCable.mouseX, pendingCable.mouseY));
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "#f9a8d4");
+        path.setAttribute("stroke-width", "3");
+        path.setAttribute("stroke-linecap", "round");
+        cableLayer.appendChild(path);
+      }
+    }
+
+    document.addEventListener("mousemove", (e) => {
+      if (dragging) {
+        const mod = moduleById(dragging.moduleId);
+        if (mod) {
+          const rect = board.getBoundingClientRect();
+          mod.x = e.clientX - rect.left - dragging.offsetX;
+          mod.y = e.clientY - rect.top - dragging.offsetY;
+          render();
+        }
+      }
+
+      if (pendingCable) {
+        const rect = board.getBoundingClientRect();
+        pendingCable.mouseX = e.clientX - rect.left;
+        pendingCable.mouseY = e.clientY - rect.top;
+        renderCables();
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      dragging = null;
+    });
+
+    board.addEventListener("mouseup", (e) => {
+      if (pendingCable && e.target === board) {
+        pendingCable = null;
+        renderCables();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
