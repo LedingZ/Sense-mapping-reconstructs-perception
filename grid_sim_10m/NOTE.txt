@@ -1,0 +1,7 @@
+Fixed-Position Sound Simulation
+
+Multiple sound sources are placed at fixed positions with 10m spacing
+in a cross-like layout inside a virtual room.
+All sources emit simultaneously and are recorded by a fixed microphone.
+The resulting audio is a spatial projection of the scene.
+Source and mic positions are saved as metadata for later learning.

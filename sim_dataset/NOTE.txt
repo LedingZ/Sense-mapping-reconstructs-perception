@@ -1,0 +1,8 @@
+Random-Position Sound Simulation
+
+Multiple sound sources are randomly placed inside a virtual room.
+For each sample, both source positions and microphone position vary.
+All sources emit simultaneously and are recorded as a mixed signal.
+This dataset captures diverse spatial configurations for learning.
+Exact positions are stored as metadata for supervised spatial inference.
+
